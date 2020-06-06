@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="new_memo" type="id" />
+    <item name="return_button" type="id" />
+    <item name="save_button" type="id" />
+    <item name="text_body" type="id" />
+    <item name="List" type="id" />
+    <item name="text1" type="id" />
+    <item name="text2" type="id" />
+</resources>

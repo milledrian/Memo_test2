@@ -7,7 +7,7 @@ import android.content.Context;
 public class MemoHelper extends SQLiteOpenHelper {
 
     static final private String DBName = "Memo_DB";
-    static final private int VERSION = 1;
+    static final private int VERSION = 2;
 
     public MemoHelper(Context context){
         super(context, DBName, null, VERSION);

@@ -5,12 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.content.Intent;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,52 +18,72 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity  {
 
+    private static String TAG = "MemoHelper";
     MemoHelper helper = null;
-
     private String id_memo;
+    private int memo_position;
+    private MyListAdapter memo_list;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         SetView();
 
     }
 
     protected void onResume(){
         super.onResume();
-        SetView();
+        if(helper == null) {
+            helper = new MemoHelper(MainActivity.this);
+        }
+
+        SQLiteDatabase db = helper.getWritableDatabase();
+        String[] temp_id = {id_memo};
+        try {
+            Cursor data_set = db.rawQuery("select uuid, body from MEMO_TABLE where uuid=?", temp_id);
+            boolean first = data_set.moveToFirst();
+            HashMap<String, String> data = new HashMap<>();
+
+            data.put("id", data_set.getString(0));
+            data.put("body", data_set.getString(1));
+        }finally{
+            db.close();
+        }
+
     }
 
     public void SetView(){
         if(helper == null){
             helper = new MemoHelper(MainActivity.this);
         }
-        final ArrayList<HashMap<String, String>> List = new ArrayList<>();
+        final ArrayList<ListItem> Lists = new ArrayList<>();
         SQLiteDatabase db = helper.getWritableDatabase();
+        Log.i(TAG, "test4: ");
 
         try{
+            Log.i(TAG, "test5: ");
             Cursor data_set = db.rawQuery("select uuid, body from MEMO_TABLE order by id", null);
             boolean first = data_set.moveToFirst();
             while(first){
-                HashMap<String,String> data = new HashMap<>();
-                data.put("id",data_set.getString(0));
-                data.put("body",data_set.getString(1));
-                List.add(data);
+                ListItem List = new ListItem();
+                Log.i(TAG, "uuid: "+ data_set.getString(0));
+                Log.i(TAG, "body: "+ data_set.getString(1));
+                List.setUuid(data_set.getString(0));
+                List.setBody(data_set.getString(1));
+                Lists.add(List);
 
                 first = data_set.moveToNext();
             }
         } finally {
             db.close();
         }
-        final SimpleAdapter simpleAdapter = new SimpleAdapter(this,
-                List,
-                android.R.layout.simple_list_item_2,
-                new String[]{"body","id"},
-                new int[]{android.R.id.text1, android.R.id.text2}
-        );
+
+        memo_list = new MyListAdapter(this, Lists, R.layout.list_item);
         ListView listView = (ListView) findViewById(R.id.List);
-        listView.setAdapter(simpleAdapter);
+        listView.setAdapter(memo_list);
+
         Button new_button = (Button) findViewById(R.id.new_memo);
 
         // メモを閲覧
@@ -87,8 +107,8 @@ public class MainActivity extends AppCompatActivity  {
                 } finally {
                     db.close();
                 }
-                List.remove(position);
-                simpleAdapter.notifyDataSetChanged();
+                Lists.remove(position);
+                memo_list.notifyDataSetChanged();
                 return true;
             }
         });
@@ -98,14 +118,26 @@ public class MainActivity extends AppCompatActivity  {
         new_button.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
                 SQLiteDatabase db = helper.getWritableDatabase();
-                String uuid = UUID.randomUUID().toString();
+                id_memo = UUID.randomUUID().toString();
+                String[] temp_id = {id_memo};
                 try {
-                    db.execSQL("DELETE FROM MEMO_TABLE WHERE uuid = '"+ uuid +"'");
+                    db.execSQL("insert into MEMO_TABLE(uuid) VALUES('"+ id_memo +"')");
                 } finally {
                     db.close();
                 }
+                memo_position = memo_list.getCount();
+
                 Intent intent = new Intent(MainActivity.this, CreatePage.class);
                 intent.putExtra("id", id_memo);
+                ListItem List = new ListItem();
+
+                Cursor data_set = db.rawQuery("select uuid, body from MEMO_TABLE where uuid=?",temp_id);
+
+                boolean first = data_set.moveToFirst();
+
+                List.setUuid(data_set.getString(0));
+                List.setBody(data_set.getString(1));
+                memo_list.add(List);
                 startActivity(intent);
             }
         });

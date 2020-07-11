@@ -30,6 +30,11 @@ public class MyListAdapter extends BaseAdapter {
         return data.get(position);
     }
 
+    public String getUUID(int position) {
+        return data.get(position).getUuid();
+    }
+
+
     public long getItemId(int position){
         return data.get(position).getId();
     }
@@ -40,7 +45,8 @@ public class MyListAdapter extends BaseAdapter {
         if(convertView == null){
             convertView = activity.getLayoutInflater().inflate(resource,null);
         }
-        ((TextView) convertView.findViewById(R.id.title)).setText(item.getBody());
+        ((TextView) convertView.findViewById(R.id.body)).setText(item.getBody());
+        ((TextView) convertView.findViewById(R.id.uuid)).setText(item.getUuid());
         return convertView;
     }
 
@@ -48,5 +54,10 @@ public class MyListAdapter extends BaseAdapter {
         data.add(item);
     }
 
-
+    public void update(int position, ListItem data) {
+        ListItem item = (ListItem) getItem(position);
+        item.setUuid(data.getUuid());
+        item.setBody(data.getBody());
+        notifyDataSetChanged();
+    }
 }

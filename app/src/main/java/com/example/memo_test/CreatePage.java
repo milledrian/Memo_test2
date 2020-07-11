@@ -10,6 +10,11 @@ import android.view.View;
 import android.content.Intent;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.content.ContentValues;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import java.util.UUID;
 
@@ -55,15 +60,26 @@ public class CreatePage extends AppCompatActivity implements View.OnClickListene
             case R.id.save_button:
                 EditText body = (EditText)findViewById(R.id.text_body);
                 String data_body = body.getText().toString();
-
+                ContentValues create_data = new ContentValues();
                 SQLiteDatabase db = helper.getWritableDatabase();
                 try{
                     db.execSQL("update MEMO_TABLE set body = '"+ data_body +"' where uuid = '"+id+"'");
+
+                    String[] temp_id = {id};
+                    create_data.put("data",getNowDate());
+                    db.update("DATA_TABLE",create_data,"ref_uuid=?",temp_id);
                 } finally{
                     db.close();
                 }
+
                 finish();
                 break;
         }
+    }
+
+    public static String getNowDate(){
+        final DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        final Date date = new Date(System.currentTimeMillis());
+        return df.format(date);
     }
 }

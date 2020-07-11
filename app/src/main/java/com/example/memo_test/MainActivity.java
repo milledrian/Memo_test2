@@ -39,14 +39,18 @@ public class MainActivity extends AppCompatActivity  {
         helper = new MemoHelper(MainActivity.this);
         SQLiteDatabase db = helper.getWritableDatabase();
         String[] temp_id ={id_memo};
+        Cursor date;
         if(id_memo!= "") {
             try {
                 Cursor data_set = db.rawQuery("select uuid, body from MEMO_TABLE where uuid=?", temp_id);
+                date = db.rawQuery("select ref_uuid,data from DATA_TABLE where ref_uuid=?", temp_id);
                 boolean first = data_set.moveToFirst();
+                date.moveToFirst();
                 ListItem memo_data = new ListItem();
 
                 memo_data.setUuid(data_set.getString(0));
                 memo_data.setBody(data_set.getString(1));
+                memo_data.setData(date.getString(1));
                 memo_list.update(memo_position,memo_data);
             } finally {
                 db.close();
@@ -61,20 +65,23 @@ public class MainActivity extends AppCompatActivity  {
         }
         final ArrayList<ListItem> Lists = new ArrayList<>();
         SQLiteDatabase db = helper.getWritableDatabase();
-        Log.i(TAG, "test4: ");
 
         try{
-            Log.i(TAG, "test5: ");
             Cursor data_set = db.rawQuery("select uuid, body from MEMO_TABLE order by id", null);
+            Cursor date;
+            String[] temp_id;
             boolean first = data_set.moveToFirst();
             while(first){
                 ListItem List = new ListItem();
-                Log.i(TAG, "uuid: "+ data_set.getString(0));
-                Log.i(TAG, "body: "+ data_set.getString(1));
                 List.setUuid(data_set.getString(0));
                 List.setBody(data_set.getString(1));
-                Lists.add(List);
+                temp_id = new String[]{List.getUuid()};
 
+                date = db.rawQuery("select ref_uuid,data from DATA_TABLE where ref_uuid=?", temp_id);
+                date.moveToFirst();
+
+                List.setData(date.getString(1));
+                Lists.add(List);
                 first = data_set.moveToNext();
             }
         } finally {
@@ -104,6 +111,7 @@ public class MainActivity extends AppCompatActivity  {
                 SQLiteDatabase db = helper.getWritableDatabase();
                 String[] temp_id = {id_memo};
                 db.delete("MEMO_TABLE", "uuid=?", temp_id);
+                db.delete("DATA_TABLE", "ref_uuid=?", temp_id);
                 Lists.remove(position);
                 memo_list.notifyDataSetChanged();
                 return true;
@@ -123,6 +131,12 @@ public class MainActivity extends AppCompatActivity  {
                 create_data.put("body","");
                 create_data.put("uuid",id_memo);
                 db.insert("MEMO_TABLE",null,create_data);
+
+                create_data.clear();
+
+                create_data.put("ref_uuid",id_memo);
+                create_data.put("data","");
+                db.insert("DATA_TABLE",null,create_data);
 
                 ListItem List = new ListItem();
 

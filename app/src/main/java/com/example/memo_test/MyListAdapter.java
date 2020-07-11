@@ -47,6 +47,7 @@ public class MyListAdapter extends BaseAdapter {
         }
         ((TextView) convertView.findViewById(R.id.body)).setText(item.getBody());
         ((TextView) convertView.findViewById(R.id.uuid)).setText(item.getUuid());
+        ((TextView) convertView.findViewById(R.id.data)).setText(item.getData());
         return convertView;
     }
 
@@ -58,6 +59,7 @@ public class MyListAdapter extends BaseAdapter {
         ListItem item = (ListItem) getItem(position);
         item.setUuid(data.getUuid());
         item.setBody(data.getBody());
+        item.setData(data.getData());
         notifyDataSetChanged();
     }
 }
